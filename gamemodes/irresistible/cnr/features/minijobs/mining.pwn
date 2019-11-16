@@ -272,6 +272,7 @@ hook OnPlayerKeyStateChange( playerid, newkeys, oldkeys )
 			{
 				static
 					Float: X, Float: Y, Float: Z;
+				static Float: offset = 0.0;
 
 				foreach ( new m : miningrock )
 				{
@@ -283,7 +284,8 @@ hook OnPlayerKeyStateChange( playerid, newkeys, oldkeys )
 						if ( g_miningData[ m ] [ E_ORES ] <= 0 )
 							return SendError( playerid, "There are no ores left in this rock." );
 
-						SetPlayerFacePoint( playerid, X, Y, Z );
+						GetDynamicObjectPos( g_miningData[ m ] [ E_OBJECT ], X, Y, Z );
+						SetPlayerFacePoint( playerid, X, Y, offset );
 						SetPlayerMineOre( playerid, m );
 						SendServerMessage( playerid, "You're now mining a rock." );
 						return 1;

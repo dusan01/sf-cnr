@@ -151,7 +151,7 @@ CMD:creategarage( playerid, params[ ] )
 	{
 		mysql_format(
 			dbHandle, szBigString, sizeof( szBigString ),
-			"SELECT * FROM `NOTES` WHERE (`NOTE` LIKE '{FFDC2E}V.I.P Garage%%' ) AND USER_ID=%d AND `DELETED` IS NULL LIMIT 0,1",
+			"SELECT * FROM `NOTES` WHERE (`NOTE` LIKE '{FFDC2E}V.I.P Garage%%' OR `NOTE` LIKE '{FFDC2E}Select Garage%%') AND USER_ID=%d AND `DELETED` IS NULL LIMIT 0,1",
 			IsPlayerConnected( pID ) ? GetPlayerAccountID( pID ) : 0
 		);
 		mysql_tquery( dbHandle, szBigString, "OnAdminCreateGarage", "ddd", playerid, pID, cost );
@@ -695,7 +695,7 @@ CMD:createcar( playerid, params[ ] )
 	    if ( ( iModel = GetVehicleModelFromName( vName ) ) != -1 ) {
 			mysql_format(
 				dbHandle, szBigString, sizeof( szBigString ),
-				"SELECT * FROM `NOTES` WHERE (`NOTE` LIKE '{FFDC2E}V.I.P Vehicle%%' ) AND USER_ID=%d AND `DELETED` IS NULL LIMIT 0,1",
+				"SELECT * FROM `NOTES` WHERE (`NOTE` LIKE '{FFDC2E}V.I.P Vehicle%%' OR `NOTE` LIKE '{FFDC2E}Select Vehicle%%') AND USER_ID=%d AND `DELETED` IS NULL LIMIT 0,1",
 				GetPlayerAccountID( pID )
 			);
 			mysql_tquery( dbHandle, szBigString, "OnAdminCreateVehicle", "ddd", playerid, pID, iModel );
@@ -862,7 +862,7 @@ CMD:createhouse( playerid, params[ ] )
 	{
 		mysql_format(
 			dbHandle, szBigString, sizeof( szBigString ),
-			"SELECT * FROM `NOTES` WHERE (`NOTE` LIKE '{FFDC2E}V.I.P House%%' ) AND USER_ID=%d AND `DELETED` IS NULL LIMIT 0,1",
+			"SELECT * FROM `NOTES` WHERE (`NOTE` LIKE '{FFDC2E}V.I.P House%%' OR `NOTE` LIKE '{FFDC2E}Select House%%') AND USER_ID=%d AND `DELETED` IS NULL LIMIT 0,1",
 			IsPlayerConnected( pID ) ? GetPlayerAccountID( pID ) : 0
 		);
 		mysql_tquery( dbHandle, szBigString, "OnAdminCreateHouse", "ddd", playerid, pID, cost );

@@ -70,6 +70,9 @@ hook OnDialogResponse( playerid, dialogid, response, listitem, inputtext[ ] )
     		{
     			case 0:
     			{
+					if ( p_ExplosiveBullets[ playerid ] >= MAX_EXPLOSIVE_ROUNDS )
+						return SendError( playerid, "You can only purchase a max of %d rounds.", MAX_EXPLOSIVE_ROUNDS );
+
     				p_ExplosiveBullets[ playerid ] += 10;
     				ShowPlayerHelpDialog( playerid, 3000, "Press ~r~~k~~CONVERSATION_NO~~w~ to activate explosive bullets." );
     			}

@@ -220,40 +220,32 @@ hook OnServerUpdate( )
 	// Replenish product
 	foreach ( new businessid : business ) if ( g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] )
 	{
-		new
-			members = 0;
+		// reduce business production time by a second
+		g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] --;
 
-		GetOnlineBusinessAssociates( businessid, members );
-
-		if ( members )
+		// if the production timestamp is less than 0 ... refuel
+		if ( g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] <= 0 )
 		{
-			// reduce business production time by a second
-			g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] --;
+			// update the timestamps and switch stock for product
+			g_businessData[ businessid ] [ E_PRODUCT ] += g_businessData[ businessid ] [ E_SUPPLIES ];
+			g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] = 0;
+			g_businessData[ businessid ] [ E_SUPPLIES ] = 0;
 
-			// if the production timestamp is less than 0 ... refuel
-			if ( g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] <= 0 )
-			{
-				// update the timestamps and switch stock for product
-				g_businessData[ businessid ] [ E_PRODUCT ] += g_businessData[ businessid ] [ E_SUPPLIES ];
-				g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] = 0;
-				g_businessData[ businessid ] [ E_SUPPLIES ] = 0;
-
-				// alert any associates
-				foreach ( new p : Player ) if ( IsBusinessAssociate( p, businessid ) )  {
-					SendClientMessageFormatted( p, -1, ""COL_GREY"[BUSINESS]"COL_WHITE" Production has completed for "COL_GREY"%s"COL_WHITE".", g_businessData[ businessid ] [ E_NAME ] );
-				}
-
-				// update db
-				UpdateBusinessData( businessid );
-			}
-			else if ( g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] % 60 == 0 ) // every minute that passes, update in the sql
-			{
-				mysql_single_query( sprintf( "UPDATE `BUSINESSES` SET `PROD_TIMESTAMP` = %d WHERE `ID` = %d", g_businessData[ businessid ] [ E_PROD_TIMESTAMP ], businessid ) );
+			// alert any associates
+			foreach ( new p : Player ) if ( IsBusinessAssociate( p, businessid ) )  {
+				SendClientMessageFormatted( p, -1, ""COL_GREY"[BUSINESS]"COL_WHITE" Production has completed for "COL_GREY"%s"COL_WHITE".", g_businessData[ businessid ] [ E_NAME ] );
 			}
 
-			// update label anyway
-			UpdateBusinessProductionLabel( businessid );
+			// update db
+			UpdateBusinessData( businessid );
 		}
+		else if ( g_businessData[ businessid ] [ E_PROD_TIMESTAMP ] % 60 == 0 ) // every minute that passes, update in the sql
+		{
+			mysql_single_query( sprintf( "UPDATE `BUSINESSES` SET `PROD_TIMESTAMP` = %d WHERE `ID` = %d", g_businessData[ businessid ] [ E_PROD_TIMESTAMP ], businessid ) );
+		}
+
+		// update label anyway
+		UpdateBusinessProductionLabel( businessid );
 	}
 	return 1;
 }

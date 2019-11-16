@@ -278,7 +278,11 @@ hook OnDialogResponse( playerid, dialogid, response, listitem, inputtext[ ] )
 						StockMarket_UpdateEarnings( E_STOCK_AMMUNATION, price, .factor = 0.25 );
 
 						if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 101 ) SetPlayerArmour( playerid, float( g_AmmunationWeapons[ i ] [ E_AMMO ] ) );
-						else if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 102 ) {
+						else if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 102 )
+						{
+							if ( p_ExplosiveBullets[ playerid ] >= MAX_EXPLOSIVE_ROUNDS )
+								return SendError( playerid, "You can only purchase a max of %d rounds.", MAX_EXPLOSIVE_ROUNDS );
+
 							p_ExplosiveBullets[ playerid ] += g_AmmunationWeapons[ i ] [ E_AMMO ];
 							ShowPlayerHelpDialog( playerid, 3000, "Press ~r~~k~~CONVERSATION_NO~~w~ to activate explosive bullets." );
 						}

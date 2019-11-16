@@ -359,6 +359,7 @@ stock CreateLoopingAnimation( playerid, animlib[ ], animname[ ], Float:Speed, lo
 	else if ( IsPlayingAnimation( playerid, "ROB_BANK", "CAT_Safe_Rob" ) ) return SendError( playerid, "You cannot use this command since you're robbing." );
 	else if ( IsPlayingAnimation( playerid, "GANGS", "smkcig_prtl" ) ) return SendError( playerid, "You cannot use this command since you're smoking." );
 	else if ( IsPlayerAttachedObjectSlotUsed( playerid, 3 ) ) return SendError( playerid, "You cannot use this command since you're holding a stolen good." );
+	else if ( IsPlayerAttachedObjectSlotUsed( playerid, 4 ) ) return SendError( playerid, "You cannot use this command since you're holding an ore." );
 	else if ( GetPlayerState( playerid ) == PLAYER_STATE_ENTER_VEHICLE_DRIVER || GetPlayerState( playerid ) == PLAYER_STATE_ENTER_VEHICLE_PASSENGER ) return SendError( playerid, "You cannot use this command since you're entering a vehicle." );
     else if ( GetPlayerState( playerid ) == PLAYER_STATE_EXIT_VEHICLE ) return SendError( playerid, "You cannot use this command since you're exiting a vehicle." );
 	else if ( GetPlayerWeapon( playerid ) == 46 ) return SendError( playerid, "You cannot use this command while wearing a parachute." );

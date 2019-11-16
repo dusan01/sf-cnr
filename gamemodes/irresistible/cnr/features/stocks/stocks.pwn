@@ -847,7 +847,12 @@ CMD:stockmarkets( playerid, params[ ] )
 
 CMD:shares( playerid, params[ ] )
 {
+	if ( p_accountSecurityData[ playerid ] [ E_ID ] && ! p_accountSecurityData[ playerid ] [ E_VERIFIED ] && p_accountSecurityData[ playerid ] [ E_MODE ] != SECURITY_MODE_DISABLED )
+		return SendError( playerid, "You must be verified in order to use this feature. "COL_YELLOW"(use /verify)" );
+		else
+	{
 	return ShowPlayerShares( playerid );
+	}
 }
 
 CMD:astock( playerid, params[ ] )

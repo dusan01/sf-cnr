@@ -111,6 +111,7 @@ static stock
 		{ 3, "/ban", 				"Banning a player" },
 		{ 3, "/forceac",			"Force a player to use CAC while playing the server" },
 		{ 3, "/bring", 				"Bring a player to you" },
+		{ 3, "/chatbanlist",			"Shows a list of chat-banned players" },
 
 		/* ** Level 4 Commands ** */
 		{ 4, "/destroyallav", 		"Destroys all admin spawned vehicles" },

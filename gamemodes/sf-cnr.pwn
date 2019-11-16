@@ -51,6 +51,8 @@ native WP_Hash						( buffer[ ], len, const str[ ] );
 native IsValidVehicle				( vehicleid );
 native gpci 						( playerid, serial[ ], len );
 
+#define MAX_EXPLOSIVE_ROUNDS 		( 1024 )
+
 /* ** SF-CNR ** */
 #include 							"irresistible\_main.pwn"
 
@@ -112,7 +114,7 @@ public OnGameModeInit()
 	mysql_function_query( dbHandle, "UPDATE USERS SET VIP_PACKAGE=0, VIP_EXPIRE=0 WHERE UNIX_TIMESTAMP() > VIP_EXPIRE AND VIP_EXPIRE != 0", true, "onRemoveInactiveRows", "d", 1 );
 
 	// Truncate accounts older than 2 months
-	mysql_function_query( dbHandle, "UPDATE USERS SET CASH=0,BANKMONEY=0,COINS=0.0,XP=0 WHERE UNIX_TIMESTAMP()-`LASTLOGGED`>5259487", true, "onRemoveInactiveRows", "d", 2 );
+	mysql_function_query( dbHandle, "UPDATE USERS SET CASH=0,BANKMONEY=0,COINS=0.0 WHERE UNIX_TIMESTAMP()-`LASTLOGGED`>5259487", true, "onRemoveInactiveRows", "d", 2 );
 
 	// Remove inactive homes older than 2 weeks
 	mysql_function_query( dbHandle, "DELETE a2,a3 FROM `USERS` a1 " \
@@ -816,10 +818,12 @@ public OnPlayerSpawn( playerid )
 	SetPlayerColorToTeam( playerid );
 	SetPlayerVirtualWorld( playerid, 0 );
 
-	if ( p_VIPLevel[ playerid ] >= VIP_REGULAR && p_VIPWep1{ playerid } != 0 ) GivePlayerWeapon( playerid, p_VIPWep1{ playerid }, 200 );
-	if ( p_VIPLevel[ playerid ] >= VIP_GOLD && p_VIPWep2{ playerid } != 0 ) GivePlayerWeapon( playerid, p_VIPWep2{ playerid }, 200 );
-	if ( p_VIPLevel[ playerid ] >= VIP_PLATINUM && p_VIPWep3{ playerid } != 0 ) GivePlayerWeapon( playerid, p_VIPWep3{ playerid }, 200 );
-	if ( p_VIPLevel[ playerid ] >= VIP_GOLD ) SetPlayerArmour( playerid, 100.0 ); // Free armour on spawn.
+	if ( p_VIPLevel[ playerid ] >= VIP_REGULAR ){
+		if ( p_VIPLevel[ playerid ] >= VIP_REGULAR && p_VIPWep1{ playerid } != 0 ) GivePlayerWeapon( playerid, p_VIPWep1{ playerid }, 200 );
+		if ( p_VIPLevel[ playerid ] >= VIP_GOLD && p_VIPWep2{ playerid } != 0 ) GivePlayerWeapon( playerid, p_VIPWep2{ playerid }, 200 );
+		if ( p_VIPLevel[ playerid ] >= VIP_PLATINUM && p_VIPWep3{ playerid } != 0 ) GivePlayerWeapon( playerid, p_VIPWep3{ playerid }, 200 );
+		if ( p_VIPLevel[ playerid ] >= VIP_GOLD ) SetPlayerArmour( playerid, 100.0 ); // Free armour on spawn.
+	}
 
 	CallLocalFunction( "SetPlayerRandomSpawn", "d", playerid );
 
@@ -1107,7 +1111,7 @@ public OnPlayerTakePlayerDamage( playerid, issuerid, &Float: amount, weaponid, b
 		return 0;
 
 	// Anti RDM and gang member damage
-	if ( ! IsPlayerInPaintBall( playerid ) && ! IsPlayerBoxing( playerid ) && ! IsPlayerDueling( playerid ) && ! IsPlayerInBattleRoyale( playerid ) )
+	if ( ! IsPlayerInPaintBall( playerid ) && ! IsPlayerBoxing( playerid ) && ! IsPlayerDueling( playerid ) && ! IsPlayerInBattleRoyale( playerid ) && ! IsPlayerInEvent( playerid ) )
 	{
 		#if defined __cloudy_event_system
 		if ( IsPlayerInPlayerGang( issuerid, playerid ) && ! ( IsPlayerInEvent( playerid ) && IsPlayerInEvent( issuerid ) && g_eventData[ EV_FIGHT_TYPE] <= 2 ) )
@@ -2765,7 +2769,7 @@ CMD:labelcolor( playerid, params[ ] )
 {
 	new
 		szLabel[ 7 ];
-
+	
 	if ( sscanf( params, "s[7]", szLabel ) ) return SendUsage( playerid, "/labelcolor [HEX CODE (= normal)]" );
 	else if ( p_VIPLevel[ playerid ] < VIP_REGULAR ) return SendError( playerid, "You are not a V.I.P, to become one visit "COL_GREY"donate.sfcnr.com" );
 	else if ( strmatch( szLabel, "normal" ) )
@@ -2794,7 +2798,9 @@ CMD:changepw( playerid, params[ ] )
 {
 	static
 		szHashed[ 129 ], szSalt[ 25 ];
-
+		
+	if ( p_accountSecurityData[ playerid ] [ E_ID ] && ! p_accountSecurityData[ playerid ] [ E_VERIFIED ] && p_accountSecurityData[ playerid ] [ E_MODE ] != SECURITY_MODE_DISABLED )
+		return SendError( playerid, "You must be verified in order to use this feature. "COL_YELLOW"(use /verify)" );
 	if ( !p_PlayerLogged{ playerid } ) return SendError( playerid, "You are not logged in." );
 	if ( isnull( params ) ) return SendUsage( playerid, "/change(pw/pass/password) [PASSWORD]" );
 	if ( strlen( params ) > 24 || strlen( params ) < 3 ) return SendError( playerid, "Your password must be indexed within 3 and 24 characters." );
@@ -5535,7 +5541,11 @@ public OnDialogResponse( playerid, dialogid, response, listitem, inputtext[ ] )
 						SetPVarInt( playerid, "purchased_weapon", GetPVarInt( playerid, "purchased_weapon" ) + 1 );
 						SendClientMessageFormatted( playerid, -1, ""COL_ORANGE"[WEAPON DEAL]{FFFFFF} You have purchased %s for "COL_GOLD"%s"COL_WHITE".", g_AmmunationWeapons[ i ] [ E_NAME ], cash_format( price ) );
 						if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 101 ) SetPlayerArmour( playerid, 100.0 );
-						else if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 102 ) {
+						else if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 102 )
+						{
+							if ( p_ExplosiveBullets[ playerid ] >= MAX_EXPLOSIVE_ROUNDS )
+								return SendError( playerid, "You can only purchase a max of %d rounds.", MAX_EXPLOSIVE_ROUNDS );
+
 							p_ExplosiveBullets[ playerid ] += g_AmmunationWeapons[ i ] [ E_AMMO ];
 							ShowPlayerHelpDialog( playerid, 3000, "Press ~r~~k~~CONVERSATION_NO~~w~ to activate explosive bullets." );
 						}
@@ -5592,7 +5602,11 @@ public OnDialogResponse( playerid, dialogid, response, listitem, inputtext[ ] )
 						RedirectAmmunation( playerid, p_AmmunationMenu{ playerid } );
 
 						if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 101 ) SetPlayerArmour( playerid, float( g_AmmunationWeapons[ i ] [ E_AMMO ] ) );
-						else if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 102 ) {
+						else if ( g_AmmunationWeapons[ i ] [ E_WEPID ] == 102 )
+						{
+							if ( p_ExplosiveBullets[ playerid ] >= MAX_EXPLOSIVE_ROUNDS )
+								return SendError( playerid, "You can only purchase a max of %d rounds.", MAX_EXPLOSIVE_ROUNDS );
+
 							p_ExplosiveBullets[ playerid ] += g_AmmunationWeapons[ i ] [ E_AMMO ];
 							ShowPlayerHelpDialog( playerid, 3000, "Press ~r~~k~~CONVERSATION_NO~~w~ to activate explosive bullets." );
 						}
@@ -5656,9 +5670,9 @@ public OnDialogResponse( playerid, dialogid, response, listitem, inputtext[ ] )
 
 		if ( IsPlayerJailed( playerid ) ) return SendError( playerid, "You cannot travel while you're in jail." );
 		if ( p_WantedLevel[ playerid ] ) return SendError( playerid, "You cannot travel while you are wanted." );
-		if ( GetPlayerCash( playerid ) < AIR_TRAVEL_COST ) return SendError( playerid, "You need %s to travel between cities.", cash_format( AIR_TRAVEL_COST ) );
+		if ( !(( GetPlayerCash( playerid ) >= AIR_TRAVEL_COST ) || ( GetPlayerCasinoRewardsPoints( playerid ) >= 5.0 )) ) return SendError( playerid, "You need %s to travel between cities.", cash_format( AIR_TRAVEL_COST ) );
 
-		new bool: using_rewards = GetPlayerCasinoRewardsPoints( playerid ) > 5.0;
+		new bool: using_rewards = GetPlayerCasinoRewardsPoints( playerid ) >= 5.0;
 
 		// set position
 		switch ( listitem )
